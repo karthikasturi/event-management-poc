@@ -9,6 +9,10 @@ Parameters:
       - dev
       - staging
       - prod
+  
+  DeploymentBucketName:
+    Type: String
+    Description: S3 bucket name where Lambda deployment package is stored
 
 Resources:
   LambdaExecutionRole:
@@ -39,11 +43,11 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub 'event-management-api-${Environment}'
-      Runtime: nodejs18.x
+      Runtime: nodejs20.x
       Handler: src/lambda.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
-        S3Bucket: !Ref DeploymentBucket
+        S3Bucket: !Ref DeploymentBucketName
         S3Key: !Sub '${Environment}/lambda-package.zip'
       MemorySize: 512
       Timeout: 30
@@ -103,18 +107,6 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*'
 
-  DeploymentBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub 'event-management-deployments-${AWS::AccountId}-${Environment}'
-      VersioningConfiguration:
-        Status: Enabled
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-
 Outputs:
   ApiEndpoint:
     Description: API Gateway endpoint URL
@@ -127,9 +119,3 @@ Outputs:
     Value: !GetAtt EventManagementFunction.Arn
     Export:
       Name: !Sub '${AWS::StackName}-LambdaArn'
-
-  DeploymentBucketName:
-    Description: S3 bucket for deployments
-    Value: !Ref DeploymentBucket
-    Export:
-      Name: !Sub '${AWS::StackName}-DeploymentBucket'

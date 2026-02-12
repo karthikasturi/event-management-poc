@@ -71,7 +71,7 @@ jobs:
           aws cloudformation deploy \
             --template-file cloudformation/template.yml \
             --stack-name ${{ env.STACK_NAME }}-dev \
-            --parameter-overrides Environment=dev \
+            --parameter-overrides Environment=dev DeploymentBucketName=${BUCKET_NAME} \
             --capabilities CAPABILITY_IAM \
             --region ${{ env.AWS_REGION }}
       
